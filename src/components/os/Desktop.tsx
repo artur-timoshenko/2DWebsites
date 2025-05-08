@@ -218,7 +218,7 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                 ...prev,
                 isSelecting: false,
             }));
-            
+
         }
     };
 
