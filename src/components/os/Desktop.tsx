@@ -11,7 +11,7 @@ export interface DesktopProps {}
 type ExtendedWindowAppProps<T> = T & WindowAppProps;
 
 const APPLICATIONS: {
-    [key in string]: {
+    [key: string]: {
         key: string;
         name: string;
         shortcutIcon: IconName;
@@ -26,32 +26,13 @@ const APPLICATIONS: {
     },
 };
 
-
-interface Icon {
-    id: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    selected: boolean;
-}
-
-
-const Desktop: React.FC<DesktopProps> = (props) => {
+const Desktop: React.FC<DesktopProps> = () => {
     const [windows, setWindows] = useState<DesktopWindows>({});
     const [shortcuts, setShortcuts] = useState<DesktopShortcutProps[]>([]);
     const [shutdown, setShutdown] = useState(false);
     const [numShutdowns, setNumShutdowns] = useState(1);
 
-    const [selection, setSelection] = useState<{
-        isSelecting: boolean;
-        startX: number;
-        startY: number;
-        width: number;
-        height: number;
-        originX: number;
-        originY: number;
-    }>({
+    const [selection, setSelection] = useState({
         isSelecting: false,
         startX: 0,
         startY: 0,
@@ -61,17 +42,13 @@ const Desktop: React.FC<DesktopProps> = (props) => {
         originY: 0,
     });
 
-
-
     useEffect(() => {
-        if (shutdown === true) {
-            rebootDesktop();
-        }
+        if (shutdown === true) rebootDesktop();
     }, [shutdown]);
 
     useEffect(() => {
         const newShortcuts: DesktopShortcutProps[] = [];
-        Object.keys(APPLICATIONS).forEach((key) => {
+        Object.keys(APPLICATIONS).forEach((key, index) => {
             const app = APPLICATIONS[key];
             newShortcuts.push({
                 shortcutName: app.name,
@@ -87,6 +64,11 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                         />
                     );
                 },
+                x: 6,
+                y: 16 + index * 104,
+                width: 64,
+                height: 80,
+                selected: false,
             });
         });
         newShortcuts.forEach((shortcut) => {
@@ -103,8 +85,8 @@ const Desktop: React.FC<DesktopProps> = (props) => {
 
     const removeWindow = useCallback((key: string) => {
         setTimeout(() => {
-            setWindows((prevWindows) => {
-                const newWindows = { ...prevWindows };
+            setWindows((prev) => {
+                const newWindows = { ...prev };
                 delete newWindows[key];
                 return newWindows;
             });
@@ -112,75 +94,64 @@ const Desktop: React.FC<DesktopProps> = (props) => {
     }, []);
 
     const minimizeWindow = useCallback((key: string) => {
-        setWindows((prevWindows) => {
-            const newWindows = { ...prevWindows };
+        setWindows((prev) => {
+            const newWindows = { ...prev };
             newWindows[key].minimized = true;
             return newWindows;
         });
     }, []);
 
     const getHighestZIndex = useCallback((): number => {
-        let highestZIndex = 0;
-        Object.keys(windows).forEach((key) => {
-            const window = windows[key];
-            if (window && window.zIndex > highestZIndex) highestZIndex = window.zIndex;
+        let highest = 0;
+        Object.values(windows).forEach((win) => {
+            if (win?.zIndex > highest) highest = win.zIndex;
         });
-        return highestZIndex;
+        return highest;
     }, [windows]);
 
-    const toggleMinimize = useCallback(
-        (key: string) => {
-            const newWindows = { ...windows };
-            const highestIndex = getHighestZIndex();  // Используйте highestIndex
-            if (newWindows[key].minimized || newWindows[key].zIndex === highestIndex) {
-                newWindows[key].minimized = !newWindows[key].minimized;
-            }
-            newWindows[key].zIndex = highestIndex + 1;
-            setWindows(newWindows);
-        },
-        [windows, getHighestZIndex]
-    );
+    const toggleMinimize = useCallback((key: string) => {
+        const newWindows = { ...windows };
+        const highestIndex = getHighestZIndex();
+        if (newWindows[key].minimized || newWindows[key].zIndex === highestIndex) {
+            newWindows[key].minimized = !newWindows[key].minimized;
+        }
+        newWindows[key].zIndex = highestIndex + 1;
+        setWindows(newWindows);
+    }, [windows, getHighestZIndex]);
 
-    const onWindowInteract = useCallback(
-        (key: string) => {
-            setWindows((prevWindows) => ({
-                ...prevWindows,
-                [key]: {
-                    ...prevWindows[key],
-                    zIndex: 1 + getHighestZIndex(),
-                },
-            }));
-        },
-        [setWindows, getHighestZIndex]
-    );
+    const onWindowInteract = useCallback((key: string) => {
+        setWindows((prev) => ({
+            ...prev,
+            [key]: {
+                ...prev[key],
+                zIndex: 1 + getHighestZIndex(),
+            },
+        }));
+    }, [getHighestZIndex]);
 
     const startShutdown = useCallback(() => {
         setTimeout(() => {
             setShutdown(true);
-            setNumShutdowns(numShutdowns + 1);
+            setNumShutdowns((n) => n + 1);
         }, 600);
-    }, [numShutdowns]);
+    }, []);
 
-    const addWindow = useCallback(
-        (key: string, element: JSX.Element) => {
-            setWindows((prevState) => ({
-                ...prevState,
-                [key]: {
-                    zIndex: getHighestZIndex() + 1,
-                    minimized: false,
-                    component: element,
-                    name: APPLICATIONS[key].name,
-                    icon: APPLICATIONS[key].shortcutIcon,
-                },
-            }));
-        },
-        [getHighestZIndex]
-    );
+    const addWindow = useCallback((key: string, element: JSX.Element) => {
+        setWindows((prev) => ({
+            ...prev,
+            [key]: {
+                zIndex: getHighestZIndex() + 1,
+                minimized: false,
+                component: element,
+                name: APPLICATIONS[key].name,
+                icon: APPLICATIONS[key].shortcutIcon,
+            },
+        }));
+    }, [getHighestZIndex]);
 
     const handleMouseDown = (e: React.MouseEvent) => {
         const originX = e.clientX;
         const originY = e.clientY;
-
         setSelection({
             isSelecting: true,
             originX,
@@ -190,6 +161,14 @@ const Desktop: React.FC<DesktopProps> = (props) => {
             width: 0,
             height: 0,
         });
+
+        // Сброс выделения
+        setShortcuts((prev) =>
+            prev.map((s) => ({
+                ...s,
+                selected: false,
+            }))
+        );
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -197,7 +176,6 @@ const Desktop: React.FC<DesktopProps> = (props) => {
 
         const mouseX = e.clientX;
         const mouseY = e.clientY;
-
         const startX = Math.min(selection.originX, mouseX);
         const startY = Math.min(selection.originY, mouseY);
         const width = Math.abs(mouseX - selection.originX);
@@ -212,14 +190,44 @@ const Desktop: React.FC<DesktopProps> = (props) => {
         }));
     };
 
-    const handleMouseUp = () => {
-        if (selection.isSelecting) {
-            setSelection((prev) => ({
-                ...prev,
-                isSelecting: false,
-            }));
+    const isIntersecting = (a: any, b: any) => {
+        return !(
+            a.x > b.x + b.width ||
+            a.x + a.width < b.x ||
+            a.y > b.y + b.height ||
+            a.y + a.height < b.y
+        );
+    };
 
-        }
+    const handleMouseUp = () => {
+        if (!selection.isSelecting) return;
+
+        const box = {
+            x: selection.startX,
+            y: selection.startY,
+            width: selection.width,
+            height: selection.height,
+        };
+
+        setShortcuts((prevShortcuts) =>
+            prevShortcuts.map((shortcut) => {
+                const iconBox = {
+                    x: shortcut.x ?? 0,
+                    y: shortcut.y ?? 0,
+                    width: shortcut.width ?? 64,
+                    height: shortcut.height ?? 80,
+                };
+                return {
+                    ...shortcut,
+                    selected: isIntersecting(box, iconBox),
+                };
+            })
+        );
+
+        setSelection((prev) => ({
+            ...prev,
+            isSelecting: false,
+        }));
     };
 
     return !shutdown ? (
@@ -229,15 +237,13 @@ const Desktop: React.FC<DesktopProps> = (props) => {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
         >
-            {/* Render windows */}
             {Object.keys(windows).map((key) => {
                 const element = windows[key].component;
-                if (!element) return <div key={`win-${key}`}></div>;
                 return (
                     <div
                         key={`win-${key}`}
                         style={{
-                            ...{ zIndex: windows[key].zIndex },
+                            zIndex: windows[key].zIndex,
                             ...(windows[key].minimized && styles.minimized),
                         }}
                     >
@@ -249,22 +255,25 @@ const Desktop: React.FC<DesktopProps> = (props) => {
                     </div>
                 );
             })}
-            {/* Render shortcuts */}
             <div style={styles.shortcuts}>
                 {shortcuts.map((shortcut, i) => (
                     <div
-                        style={{ ...styles.shortcutContainer, top: i * 104 }}
                         key={shortcut.shortcutName}
+                        style={{
+                            ...styles.shortcutContainer,
+                            top: shortcut.y,
+                            left: shortcut.x,
+                        }}
                     >
                         <DesktopShortcut
                             icon={shortcut.icon}
                             shortcutName={shortcut.shortcutName}
                             onOpen={shortcut.onOpen}
+                            selected={shortcut.selected}
                         />
                     </div>
                 ))}
             </div>
-            {/* Render selection box */}
             {selection.isSelecting && (
                 <div
                     style={{
@@ -307,8 +316,8 @@ const styles: StyleSheetCSS = {
     },
     shortcuts: {
         position: 'absolute',
-        top: 16,
-        left: 6,
+        top: 0,
+        left: 0,
     },
     minimized: {
         pointerEvents: 'none',

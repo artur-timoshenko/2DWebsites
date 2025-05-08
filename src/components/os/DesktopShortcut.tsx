@@ -8,149 +8,99 @@ export interface DesktopShortcutProps {
     shortcutName: string;
     invertText?: boolean;
     onOpen: () => void;
+    selected?: boolean;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
 }
 
 const DesktopShortcut: React.FC<DesktopShortcutProps> = ({
-    icon,
-    shortcutName,
-    invertText,
-    onOpen,
-}) => {
+                                                             icon,
+                                                             shortcutName,
+                                                             invertText,
+                                                             onOpen,
+                                                             selected = false,
+                                                         }) => {
     const [isSelected, setIsSelected] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [shortcutId, setShortcutId] = useState('');
-    const [lastSelected, setLastSelected] = useState(false);
-    const containerRef = useRef<any>();
-
-    const [scaledStyle, setScaledStyle] = useState({});
-
-    const requiredIcon = require(`../../assets/icons/${icon}.png`);
     const [doubleClickTimerActive, setDoubleClickTimerActive] = useState(false);
 
+    const requiredIcon = require(`../../assets/icons/${icon}.png`);
+
     const getShortcutId = useCallback(() => {
-        const shortcutId = shortcutName.replace(/\s/g, '');
-        return `desktop-shortcut-${shortcutId}`;
+        return `desktop-shortcut-${shortcutName.replace(/\s/g, '')}`;
     }, [shortcutName]);
 
     useEffect(() => {
         setShortcutId(getShortcutId());
-    }, [shortcutName, getShortcutId]);
+    }, [getShortcutId]);
 
-    useEffect(() => {
-        if (containerRef.current && Object.keys(scaledStyle).length === 0) {
-            //@ts-ignore
-            const boundingBox = containerRef.current.getBoundingClientRect();
-            setScaledStyle({
-                transformOrigin: 'center',
-                transform: 'scale(1.5)',
-                left: boundingBox.width / 4,
-                top: boundingBox.height / 4,
-                // transform: 'scale(1.5)',
-                // left: boundingBox.width / 4,
-                // top: boundingBox.height / 4,
-            });
+    const handleClickOutside = useCallback((event: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            setIsSelected(false);
         }
-    }, [scaledStyle]);
-
-    const handleClickOutside = useCallback(
-        (event: MouseEvent) => {
-            // @ts-ignore
-            const targetId = event.target.id;
-            if (targetId !== shortcutId) {
-                setIsSelected(false);
-            }
-            if (!isSelected && lastSelected) {
-                setLastSelected(false);
-            }
-        },
-        [isSelected, setIsSelected, setLastSelected, lastSelected, shortcutId]
-    );
-
-    interface DesktopShortcutProps {
-        icon: string;
-        shortcutName: string;
-        onOpen: () => void;
-        isSelected?: boolean;
-    }
-
-    const DesktopShortcut = ({ icon, shortcutName, onOpen, isSelected }: DesktopShortcutProps) => {
-        return (
-            <div
-                onClick={onOpen}
-                style={{
-                    border: isSelected ? '2px solid blue' : 'none',
-                    padding: 4,
-                    borderRadius: 4,
-                }}
-            >
-                <img src={icon} alt={shortcutName} />
-                <div>{shortcutName}</div>
-            </div>
-        );
-    };
+    }, []);
 
     const handleClickShortcut = useCallback(() => {
         if (doubleClickTimerActive) {
-            onOpen && onOpen();
+            onOpen();
             setIsSelected(false);
             setDoubleClickTimerActive(false);
             return;
         }
         setIsSelected(true);
-        setLastSelected(true);
         setDoubleClickTimerActive(true);
-        // set double click timer
         setTimeout(() => {
             setDoubleClickTimerActive(false);
         }, 300);
-    }, [doubleClickTimerActive, setIsSelected, onOpen]);
+    }, [doubleClickTimerActive, onOpen]);
 
     useEffect(() => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isSelected, handleClickOutside]);
+    }, [handleClickOutside]);
+
+    const isActive = selected || isSelected;
 
     return (
         <div
-            id={`${shortcutId}`}
-            style={Object.assign({}, styles.appShortcut, scaledStyle)}
-            onMouseDown={handleClickShortcut}
+            id={shortcutId}
             ref={containerRef}
+            onMouseDown={handleClickShortcut}
+            style={{
+                ...styles.appShortcut,
+                top: `0px`,
+                left: `0px`,
+            }}
         >
-            <div id={`${shortcutId}`} style={styles.iconContainer}>
+            <div style={styles.iconContainer}>
                 <div
-                    id={`${shortcutId}`}
                     className="desktop-shortcut-icon"
-                    style={Object.assign(
-                        {},
-                        styles.iconOverlay,
-                        isSelected && styles.checkerboard,
-                        isSelected && {
+                    style={{
+                        ...styles.iconOverlay,
+                        ...(isActive && styles.checkerboard),
+                        ...(isActive && {
                             WebkitMask: `url(${requiredIcon})`,
-                        }
-                    )}
+                        }),
+                    }}
                 />
                 <Icon icon={icon} style={styles.icon} />
             </div>
             <div
                 className={
-                    isSelected
-                        ? 'selected-shortcut-border'
-                        : lastSelected
-                        ? 'shortcut-border'
-                        : ''
+                    isActive ? 'selected-shortcut-border' : 'shortcut-border'
                 }
-                id={`${shortcutId}`}
-                style={isSelected ? { backgroundColor: colors.blue } : {}}
+                style={isActive ? { backgroundColor: colors.blue } : {}}
             >
                 <p
-                    id={`${shortcutId}`}
-                    style={Object.assign(
-                        {},
-                        styles.shortcutText,
-                        invertText && !isSelected && { color: 'black' }
-                    )}
+                    style={{
+                        ...styles.shortcutText,
+                        ...(invertText && !isActive ? { color: 'black' } : {}),
+                    }}
                 >
                     {shortcutName}
                 </p>
@@ -159,43 +109,48 @@ const DesktopShortcut: React.FC<DesktopShortcutProps> = ({
     );
 };
 
-const styles: StyleSheetCSS = {
+const styles: Record<string, React.CSSProperties> = {
     appShortcut: {
         position: 'absolute',
-        width: 56,
-
+        width: 112, // Увеличено в 2 раза
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'column',
         textAlign: 'center',
+        userSelect: 'none',
     },
     shortcutText: {
         cursor: 'pointer',
-        textOverflow: 'wrap',
         fontFamily: 'MSSerif',
         color: 'white',
-        fontSize: 8,
-        paddingRight: 2,
-        paddingLeft: 2,
+        fontSize: 16, // Увеличен в 2 раза
+        padding: '0 4px',
+        userSelect: 'none', // Отключение выделения текста
+        outline: 'none',     // Убираем рамку при фокусе
+        margin: 0,
     },
     iconContainer: {
         cursor: 'pointer',
-        paddingBottom: 3,
+        paddingBottom: 6,
     },
     iconOverlay: {
         position: 'absolute',
         top: 0,
-        width: 32,
-        height: 32,
+        width: 64, // увеличено
+        height: 64,
     },
     checkerboard: {
         backgroundImage: `linear-gradient(45deg, ${colors.blue} 25%, transparent 25%),
-        linear-gradient(-45deg, ${colors.blue} 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, ${colors.blue} 75%),
-        linear-gradient(-45deg, transparent 75%, ${colors.blue} 75%)`,
-        backgroundSize: `2px 2px`,
-        backgroundPosition: `0 0, 0 1px, 1px -1px, -1px 0px`,
+                          linear-gradient(-45deg, ${colors.blue} 25%, transparent 25%),
+                          linear-gradient(45deg, transparent 75%, ${colors.blue} 75%),
+                          linear-gradient(-45deg, transparent 75%, ${colors.blue} 75%)`,
+        backgroundSize: `4px 4px`,
+        backgroundPosition: `0 0, 0 2px, 2px -2px, -2px 0px`,
         pointerEvents: 'none',
+    },
+    icon: {
+        width: 64,
+        height: 64,
     },
 };
 

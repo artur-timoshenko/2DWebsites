@@ -3,7 +3,7 @@ import React from 'react';
 import windowResize from './windowResize.png';
 import maximize from './maximize.png';
 import minimize from './minimize.png';
-import computerBig from './computerBig.png';
+import computerBig from './shutdown.png';
 import computerSmall from './computerSmall.png';
 import myComputer from './myComputer.png';
 import showcaseIcon from './showcase.png';
