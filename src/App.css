@@ -1,18 +1,21 @@
-.App {
-    height: 100vh;
-    /* width: 1280px; */
-    width: 100%;
-    /* min-height: 100%; */
-    image-rendering: pixelated;
-    overflow-y: hidden;
-    overflow-x: hidden;
-}
-
-html,
-body {
+/* Указываем курсор для всего сайта */
+html, body {
     height: 100%;
     margin: 0;
     overflow: hidden;
+    cursor: url('assets/icons/arrow.png'), auto; /* Стандартный курсор */
+}
+
+.hand-cursor {
+    cursor: url('assets/icons/hand.png'), pointer; /* Курсор для кликабельных элементов */
+}
+
+.App {
+    height: 100vh;
+    width: 100%;
+    image-rendering: pixelated;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 div {
@@ -26,7 +29,6 @@ div {
 .white {
     color: #fff;
 }
-
 
 .blinking-cursor {
     background-color: #fff;

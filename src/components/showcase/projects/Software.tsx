@@ -47,6 +47,8 @@ const ProjectBox: React.FC<ProjectBoxProps> = ({
             </div>
             <div style={styles.projectLinkRight}></div>
         </Link>
+
+
     );
 };
 
@@ -66,16 +68,16 @@ const Projects: React.FC<ProjectsProps> = () => {
                 <ProjectBox
                     icon={software}
                     iconStyle={styles.computerIcon}
-                    title="Alcho Trade"
+                    title="AlcoTrading"
                     subtitle="Website"
-                    route="Lviv Knyazhy"
+                    route="AlcoTrading"
                 />
                 <ProjectBox
                     icon={art}
                     iconStyle={styles.artIcon}
                     title="Lviv Knyazhy"
                     subtitle="Landing Page"
-                    route="LvivhhKnyazhy"
+                    route="LvivKnyazhy"
                 />
                 <ProjectBox
                     icon={copyNinjaImage}

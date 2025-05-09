@@ -1,110 +1,170 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import software from '../../../assets/pictures/projects/software.gif';
+import art from '../../../assets/pictures/projects/art.gif';
+import copyNinjaImage from '../../../assets/icons/copy-ninja.png';
+import { ExplainersProps } from './motion design project/Explainers';
 
-import girlRun from '../../../assets/pictures/projects/art/girl-run.gif';
-import gsts from '../../../assets/pictures/projects/art/gsts.png';
+export interface ProjectsProps {}
 
-export interface ArtProjectsProps {}
+interface ProjectBoxProps {
+    icon: string;
+    title: string;
+    subtitle: string;
+    route: string;
+    iconStyle: React.CSSProperties;
+}
 
-const ArtProjects: React.FC<ArtProjectsProps> = (props) => {
+const ProjectBox: React.FC<ProjectBoxProps> = ({
+                                                   icon,
+                                                   title,
+                                                   subtitle,
+                                                   route,
+                                                   iconStyle,
+                                               }) => {
+    const [, setIsHovering] = useState(false);
+
+    const onMouseEnter = () => setIsHovering(true);
+    const onMouseLeave = () => setIsHovering(false);
+
+    return (
+        <Link
+            to={`/projects/${route}`}
+            className="big-button-container"
+            style={{ ...styles.projectLink, textDecoration: 'none', color: 'inherit' }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
+        >
+            <div style={styles.projectLinkLeft}>
+                <img
+                    src={icon}
+                    style={{ ...styles.projectLinkImage, ...iconStyle }}
+                    alt=""
+                />
+                <div style={styles.projectText}>
+                    <h1 style={{ fontSize: 48 }}>{title}</h1>
+                    <h3>{subtitle}</h3>
+                </div>
+            </div>
+            <div style={styles.projectLinkRight}></div>
+        </Link>
+
+
+    );
+};
+
+const Projects: React.FC<ProjectsProps> = () => {
     return (
         <div className="site-page-content">
-            <h1>Art & Design</h1>
-            <h3>Endeavors</h3>
+            <h1>Animation</h1>
+            <h3>Projects</h3>
             <br />
-            <div className="text-block">
-                <p>
-                    While I love programming and software development, Art,
-                    Design, and Animation will always hold a special place in my
-                    heart.
-                </p>
-                <br />
-                <p>
-                    Here are a few projects/things I've done over the years to
-                    keep the artistic side of me alive. I'm always looking to
-                    push myself creatively and learn new things.
-                </p>
-            </div>
-            <div className="text-block">
-                <h2>Pixel Art and Animation</h2>
-                <br />
-                <p>
-                    In high school, I started learning how to draw and animate
-                    pixel art after becoming interested in video game
-                    development. As I worked on making games over the years, I
-                    learned so much about pixel art and fell in love with
-                    animation.
-                </p>
-                <br />
-                <div className="captioned-image">
-                    <img src={girlRun} alt="" />
-                    <p>
-                        <sub>
-                            <b>Figure 1:</b> Eight Frame Run cycle animated by
-                            myself, original sprite by kevink
-                        </sub>
-                    </p>
-                </div>
-                <p>
-                    I really started enjoying the work I was doing, and felt I
-                    was improving a lot. Around 2017, I started to upload videos
-                    of my work flow and animation process to YouTube just for
-                    fun. I was really surprised however when my first video took
-                    off and got a few thousand views! Below are the video links
-                    to the work I uploaded to youtube.
-                </p>
-                <br />
-                <h3>Video Links:</h3>
-                <br />
-                <ul>
-                    <li>
-                        <a
-                            rel="noreferrer"
-                            target="_blank"
-                            href="https://www.youtube.com/watch?v=pDtUX3ZVHJ0"
-                        >
-                            <p>
-                                <b>VIDEO</b> - Pixel Art Walk Cycle Time-lapse
-                                and Tutorial
-                            </p>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            rel="noreferrer"
-                            target="_blank"
-                            href="https://www.youtube.com/watch?v=xXEDKQ3wSfM"
-                        >
-                            <p>
-                                <b>VIDEO</b> - Pixel Art "Bag Up" Animation
-                                Time-lapse
-                            </p>
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            rel="noreferrer"
-                            target="_blank"
-                            href="https://www.youtube.com/watch?v=leZzb-Y0SKQ"
-                        >
-                            <p>
-                                <b>VIDEO</b> - Pixel Art Bipedal Creature Run
-                                Cycle Time-lapse
-                            </p>
-                        </a>
-                    </li>
-                </ul>
-                <br />
-                <p>
-                    This page is currently a work in progress. I've recently
-                    found myself wanting to make more pixel art recently and I
-                    have some project plans and ideas in the works. Expect
-                    updates to this page as I dive back into the world of pixel
-                    art!
-                </p>
-                {/* <h3> Screen record time-lapses and make gifs</h3> */}
+            <p>
+                Below you will find all the websites I have created previously.
+                I have tried to include as many visuals and interactive elements as possible to showcase each project.
+                Enjoy exploring!
+            </p>
+            <br />
+            <div style={styles.projectLinksContainer}>
+                <ProjectBox
+                    icon={copyNinjaImage}
+                    iconStyle={styles.ninjaIcon}
+                    title="ShowReel"
+                    subtitle="My ShowReel"
+                    route="ShowReel"
+                />
+                <ProjectBox
+                    icon={copyNinjaImage}
+                    iconStyle={styles.ninjaIcon}
+                    title="2.5D Animation"
+                    subtitle="3D + 2D Animation"
+                    route="Animation25D"
+                />
+                <ProjectBox
+                    icon={copyNinjaImage}
+                    iconStyle={styles.ninjaIcon}
+                    title="Website Animation"
+                    subtitle="Lottie/Rive"
+                    route="WebsiteAnimation"
+                />
+                <ProjectBox
+                    icon={copyNinjaImage}
+                    iconStyle={styles.ninjaIcon}
+                    title="Reels"
+                    subtitle="Reels/Tiktok/Shorts"
+                    route="Reels"
+                />
+                <ProjectBox
+                    icon={software}
+                    iconStyle={styles.computerIcon}
+                    title="Explainers"
+                    subtitle="Website"
+                    route="Explainers"
+                />
+                <ProjectBox
+                    icon={art}
+                    iconStyle={styles.artIcon}
+                    title="Character Animation"
+                    subtitle="Landing Page"
+                    route="CharacterAnimation"
+                />
+                <ProjectBox
+                    icon={copyNinjaImage}
+                    iconStyle={styles.ninjaIcon}
+                    title="Logo Animation"
+                    subtitle="Bringing Your Brand to Life"
+                    route="LogoAnimation"
+                />
             </div>
         </div>
     );
 };
 
-export default ArtProjects;
+const styles: StyleSheetCSS = {
+    projectLinksContainer: {
+        flexDirection: 'column',
+        width: '100%',
+        display: 'flex',
+        flex: 1,
+    },
+    projectLink: {
+        marginBottom: 24,
+        cursor: 'pointer',
+        width: '100%',
+        boxSizing: 'border-box',
+
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    projectText: {
+        justifyContent: 'center',
+        flexDirection: 'column',
+    },
+    projectLinkImage: {
+        width: 48,
+        // height: 48,
+        marginRight: 38,
+    },
+    projectLinkLeft: {
+        marginLeft: 16,
+        alignItems: 'center',
+    },
+    computerIcon: {
+        width: 56,
+        height: 56,
+    },
+    arrowIcon: {
+        width: 48,
+        height: 48,
+    },
+    artIcon: {
+        width: 21 * 2,
+        height: 37 * 2,
+    },
+    ninjaIcon:{
+        width: 75,
+        height: 75,
+    }
+};
+
+export default Projects;

@@ -7,8 +7,6 @@ import experienceIcon from '../../assets/icons/experience.png';
 import aboutIcon from '../../assets/icons/about.png';
 import contactIcon from '../../assets/icons/contact.png';
 
-import TooltipIcon from './TooltipIcon'; // убедись, что путь верный
-
 export interface HomeProps {}
 
 const Home: React.FC<HomeProps> = () => {
@@ -26,51 +24,43 @@ const Home: React.FC<HomeProps> = () => {
             </div>
             <div style={styles.buttons}>
                 <Link
-                    containerStyle={styles.link}
                     to="projects"
+                    containerStyle={styles.link}
                     text={
-                        <TooltipIcon
-                            src={portfolioIcon}
-                            alt="Portfolio"
-                            tooltip="Portfolio"
-                            style={styles.icon}
-                        />
+                        <div style={styles.iconBlock}>
+                            <img src={portfolioIcon} alt="Portfolio" style={styles.icon} />
+                            <div style={styles.label}>Portfolio</div>
+                        </div>
                     }
                 />
                 <Link
-                    containerStyle={styles.link}
                     to="experience"
+                    containerStyle={styles.link}
                     text={
-                        <TooltipIcon
-                            src={experienceIcon}
-                            alt="Experience"
-                            tooltip="Experience"
-                            style={styles.icon}
-                        />
+                        <div style={styles.iconBlock}>
+                            <img src={experienceIcon} alt="Experience" style={styles.icon} />
+                            <div style={styles.label}>Experience</div>
+                        </div>
                     }
                 />
                 <Link
-                    containerStyle={styles.link}
                     to="about"
+                    containerStyle={styles.link}
                     text={
-                        <TooltipIcon
-                            src={aboutIcon}
-                            alt="About"
-                            tooltip="About"
-                            style={styles.icon}
-                        />
+                        <div style={styles.iconBlock}>
+                            <img src={aboutIcon} alt="About" style={styles.icon} />
+                            <div style={styles.label}>About</div>
+                        </div>
                     }
                 />
                 <Link
-                    containerStyle={styles.link}
                     to="contact"
+                    containerStyle={styles.link}
                     text={
-                        <TooltipIcon
-                            src={contactIcon}
-                            alt="Contact"
-                            tooltip="Contact"
-                            style={styles.icon}
-                        />
+                        <div style={styles.iconBlock}>
+                            <img src={contactIcon} alt="Contact" style={styles.icon} />
+                            <div style={styles.label}>Contact</div>
+                        </div>
                     }
                 />
             </div>
@@ -104,11 +94,10 @@ const styles: StyleSheetCSS = {
         alignItems: 'center',
         flexWrap: 'wrap',
     },
-    image: {
-        width: 800,
-    },
     link: {
         padding: 16,
+        textDecoration: 'none',
+        color: '#0000ee',
     },
     icon: {
         width: 96,
@@ -117,13 +106,16 @@ const styles: StyleSheetCSS = {
         transition: 'transform 0.2s',
         filter: 'brightness(0.9)',
     },
-    forHireContainer: {
-        marginTop: 64,
-        width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-        cursor: 'pointer',
+    iconBlock: {
         display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
+    label: {
+        marginTop: 8,
+        fontSize: 18,
+        textAlign: 'center',
+        color: '#0000ee',
     },
     name: {
         fontSize: 72,

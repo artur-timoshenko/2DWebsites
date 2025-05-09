@@ -116,7 +116,7 @@ const About: React.FC<AboutProps> = (props) => {
                         target="_blank"
                         href="https://twitter.com/henryheffernan"
                     >
-                        @henryheffernan
+                        @TymoshenkoProduction
                     </a>{' '}
                     Good luck and have fun!
                 </p>
@@ -126,8 +126,8 @@ const About: React.FC<AboutProps> = (props) => {
                     them. You can reach me through the{' '}
                     <Link to="/contact">contact page</Link> or shoot me an email
                     at{' '}
-                    <a href="mailto:henryheffernan@gmail.com">
-                        henryheffernan@gmail.com
+                    <a href="mailto:arthurtymoshenko1@gmail.com">
+                        arthurtymoshenko1@gmail.com
                     </a>
                 </p>
             </div>

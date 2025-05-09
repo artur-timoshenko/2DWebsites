@@ -5,6 +5,12 @@ import ShutdownSequence from './ShutdownSequence';
 import Toolbar from './Toolbar';
 import DesktopShortcut, { DesktopShortcutProps } from './DesktopShortcut';
 import { IconName } from '../../assets/icons';
+import Doom from '../applications/Doom';
+import BG from '../../assets/pictures/BG.png';
+import Pacman from '../applications/Pacman';
+import Tetris from '../applications/Tetris';
+
+
 
 export interface DesktopProps {}
 
@@ -24,13 +30,42 @@ const APPLICATIONS: {
         shortcutIcon: 'showcaseIcon',
         component: ShowcaseExplorer,
     },
+    doom: {
+        key: 'doom',
+        name: 'Doom',
+        shortcutIcon: 'doomIcon',
+        component: Doom,
+    },
+
+    pacman: {
+        key: 'pacman',
+        name: 'pacman',
+        shortcutIcon: 'pacmanIcon',
+        component: Pacman,
+    },
+    tetris: {
+        key: 'tetris',
+        name: 'tetris',
+        shortcutIcon: 'doomIcon',
+        component: Tetris,
+    },
 };
+
+
 
 const Desktop: React.FC<DesktopProps> = () => {
     const [windows, setWindows] = useState<DesktopWindows>({});
     const [shortcuts, setShortcuts] = useState<DesktopShortcutProps[]>([]);
     const [shutdown, setShutdown] = useState(false);
     const [numShutdowns, setNumShutdowns] = useState(1);
+    const [contextMenu, setContextMenu] = useState({
+        visible: false,
+        x: 0,
+        y: 0,
+        transitioning: false,
+    });
+
+    const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
     const [selection, setSelection] = useState({
         isSelecting: false,
@@ -40,6 +75,13 @@ const Desktop: React.FC<DesktopProps> = () => {
         height: 0,
         originX: 0,
         originY: 0,
+    });
+
+
+    const [dragging, setDragging] = useState<{ x: number; y: number; id: string | null }>({
+        x: 0,
+        y: 0,
+        id: null,
     });
 
     useEffect(() => {
@@ -78,6 +120,30 @@ const Desktop: React.FC<DesktopProps> = () => {
         });
         setShortcuts(newShortcuts);
     }, []);
+
+    useEffect(() => {
+        const handleClickOutside = () => {
+            if (contextMenu.visible) {
+                setContextMenu((prev) => ({
+                    ...prev,
+                    transitioning: true, // Start the transition to hide the menu
+                }));
+
+                setTimeout(() => {
+                    setContextMenu({
+                        visible: false,
+                        x: 0,
+                        y: 0,
+                        transitioning: false, // End the transition
+                    });
+                }, 300); // Adjust the timing to match the transition duration
+            }
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => {
+            window.removeEventListener('click', handleClickOutside);
+        };
+    }, [contextMenu]);
 
     const rebootDesktop = useCallback(() => {
         setWindows({});
@@ -162,7 +228,6 @@ const Desktop: React.FC<DesktopProps> = () => {
             height: 0,
         });
 
-        // Сброс выделения
         setShortcuts((prev) =>
             prev.map((s) => ({
                 ...s,
@@ -230,12 +295,23 @@ const Desktop: React.FC<DesktopProps> = () => {
         }));
     };
 
+    const handleContextMenu = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setContextMenu({
+            visible: true,
+            x: e.clientX,
+            y: e.clientY,
+            transitioning: false,  // Start the fade-in effect immediately
+        });
+    };
+
     return !shutdown ? (
         <div
             style={styles.desktop}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            onContextMenu={handleContextMenu}
         >
             {Object.keys(windows).map((key) => {
                 const element = windows[key].component;
@@ -256,7 +332,7 @@ const Desktop: React.FC<DesktopProps> = () => {
                 );
             })}
             <div style={styles.shortcuts}>
-                {shortcuts.map((shortcut, i) => (
+                {shortcuts.map((shortcut) => (
                     <div
                         key={shortcut.shortcutName}
                         style={{
@@ -288,6 +364,92 @@ const Desktop: React.FC<DesktopProps> = () => {
                     }}
                 />
             )}
+            {contextMenu.visible && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: contextMenu.y,
+                        left: contextMenu.x,
+                        backgroundColor: '#C0C0C0',
+                        boxShadow: 'inset -2px -2px 0px #808080, inset 2px 2px 0px #FFFFFF',
+                        zIndex: 9999,
+                        padding: '2px 0',
+                        fontFamily: 'Millennium, sans-serif',
+                        width: 160,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        opacity: contextMenu.transitioning ? 0 : 1,  // Opacity transition
+                        visibility: contextMenu.transitioning ? 'hidden' : 'visible', // Ensure visibility toggles
+                        transition: 'opacity 0.3s ease, visibility 0s 0.3s' // Transition applied here
+                    }}
+                    onClick={() => setContextMenu({ ...contextMenu, visible: false })}
+                >
+                    <div
+                        style={{
+                            ...contextItemStyle,
+                            ...(hoveredItem === 'arrangeIcons' ? contextItemHoverStyle : {})
+                        }}
+                        onMouseEnter={() => setHoveredItem('arrangeIcons')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Websites
+                    </div>
+                    <div
+                        style={{
+                            ...contextItemStyle,
+                            ...(hoveredItem === 'lineUpIcons' ? contextItemHoverStyle : {})
+                        }}
+                        onMouseEnter={() => setHoveredItem('lineUpIcons')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Motion
+                    </div>
+                    <div style={menuDividerStyle} />
+                    <div
+                        style={{
+                            ...contextItemStyle,
+                            ...(hoveredItem === 'paste' ? contextItemHoverStyle : {}),
+                            ...specialItemStyle  // Apply white color for Paste
+                        }}
+                        onMouseEnter={() => setHoveredItem('paste')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Paste
+                    </div>
+                    <div
+                        style={{
+                            ...contextItemStyle,
+                            ...(hoveredItem === 'undoDelete' ? contextItemHoverStyle : {}),
+                            ...specialItemStyle  // Apply white color for Delete
+                        }}
+                        onMouseEnter={() => setHoveredItem('undoDelete')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Delete
+                    </div>
+                    <div style={menuDividerStyle} />
+                    <div
+                        style={{
+                            ...contextItemStyle,
+                            ...(hoveredItem === 'new' ? contextItemHoverStyle : {})
+                        }}
+                        onMouseEnter={() => setHoveredItem('new')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        New Project
+                    </div>
+                    <div
+                        style={{
+                            ...contextItemStyle,
+                            ...(hoveredItem === 'properties' ? contextItemHoverStyle : {})
+                        }}
+                        onMouseEnter={() => setHoveredItem('properties')}
+                        onMouseLeave={() => setHoveredItem(null)}
+                    >
+                        Properties
+                    </div>
+                </div>
+            )}
             <Toolbar
                 windows={windows}
                 toggleMinimize={toggleMinimize}
@@ -299,20 +461,57 @@ const Desktop: React.FC<DesktopProps> = () => {
     );
 };
 
+const contextItemStyle: React.CSSProperties = {
+    padding: '2px 8px',  // уменьшенные отступы
+    cursor: 'default',
+    whiteSpace: 'nowrap',
+    fontSize: '14px',
+    userSelect: 'none',
+    color: 'black',  // базовый цвет текста
+    backgroundColor: 'transparent',
+    border: '1px solid transparent',
+    display: 'block',
+    width: 'auto',    // автоматическая ширина
+    boxSizing: 'border-box',
+    transition: 'background-color 0.2s, color 0.2s', // плавный переход
+    margin: '0' // убрали дополнительные отступы
+};
+
+// Add hover effect for changing text color to white
+const contextItemHoverStyle: React.CSSProperties = {
+    color: 'white',  // цвет текста на ховере
+    backgroundColor: '#0000a3'  // эффект на ховер
+};
+
+// Specific styles for "Paste" and "Delete" to change their text color to white
+const specialItemStyle: React.CSSProperties = {
+    color: '#808080',  // белый цвет текста для Paste и Delete
+    backgroundColor: 'transparent', // прозрачный фон
+};
+
+const menuDividerStyle: React.CSSProperties = {
+    height: '1px',
+    backgroundColor: '#808080',
+    margin: '4px 6px',
+    borderTop: '1px solid #FFF'
+};
+
 const styles: StyleSheetCSS = {
     desktop: {
         minHeight: '100%',
         flex: 1,
-        backgroundColor: Colors.turquoise,
-        position: 'relative',
+        backgroundImage: `url(${BG})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        position: 'relative'
     },
     shutdown: {
         minHeight: '100%',
         flex: 1,
-        backgroundColor: '#1d2e2f',
+        backgroundColor: '#1d2e2f'
     },
     shortcutContainer: {
-        position: 'absolute',
+        position: 'absolute'
     },
     shortcuts: {
         position: 'absolute',
@@ -323,6 +522,7 @@ const styles: StyleSheetCSS = {
         pointerEvents: 'none',
         opacity: 0,
     },
+
 };
 
 export default Desktop;

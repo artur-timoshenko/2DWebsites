@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Colors from '../../constants/colors';
 import { Icon } from '../general';
-// import { } from '../general';
-// import Home from '../site/Home';
-// import Window from './Window';
 
 export interface ToolbarProps {
     windows: DesktopWindows;
@@ -12,10 +9,10 @@ export interface ToolbarProps {
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
-    windows,
-    toggleMinimize,
-    shutdown,
-}) => {
+                                             windows,
+                                             toggleMinimize,
+                                             shutdown,
+                                         }) => {
     const getTime = () => {
         const date = new Date();
         let hours = date.getHours();
@@ -30,6 +27,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
 
     const [startWindowOpen, setStartWindowOpen] = useState(false);
     const lastClickInside = useRef(false);
+    const [isMuted, setIsMuted] = useState(false); // Статус звуку
 
     const [lastActive, setLastActive] = useState('');
 
@@ -52,6 +50,32 @@ const Toolbar: React.FC<ToolbarProps> = ({
         setTimeout(() => {
             updateTime();
         }, 5000);
+    };
+
+    const toggleMute = () => {
+        setIsMuted((prevMuted) => {
+            const newMuted = !prevMuted;
+
+            // Вимикаємо або включаємо звук на всіх елементах audio та video
+            const mediaElements = document.querySelectorAll('audio, video');
+            mediaElements.forEach((media) => {
+                (media as HTMLMediaElement).muted = newMuted;
+            });
+
+            // Якщо JS-DOS використовує Web Audio API, ми можемо знайти та змінити відповідний контекст
+            const audioContext = (window as any).audioContext;
+            if (audioContext) {
+                audioContext.suspend(); // Зупиняємо звукові ефекти JS-DOS
+            }
+
+            // Можна також спробувати вимкнути звук в інших можливих джерелах
+            const jsDosSound = (window as any).jsdos;
+            if (jsDosSound && jsDosSound.audio) {
+                jsDosSound.audio.muted = newMuted; // Для ігор JS-DOS
+            }
+
+            return newMuted;
+        });
     };
 
     useEffect(() => {
@@ -96,7 +120,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                 >
                     <div style={styles.startWindowInner}>
                         <div style={styles.verticalStartContainer}>
-                            <p style={styles.verticalText}>TymoshenkoOS</p>
+                            <p style={styles.verticalText}>Windows 95</p>
                         </div>
                         <div style={styles.startWindowContent}>
                             <div style={styles.startMenuSpace} />
@@ -108,7 +132,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
                             >
                                 <Icon
                                     style={styles.startMenuIcon}
-                                    icon="computerBig"
+                                    icon="shutdown"
                                 />
                                 <p style={styles.startMenuText}>
                                     Sh<u>u</u>t down...
@@ -152,8 +176,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                         {},
                                         styles.tabContainerOuter,
                                         lastActive === key &&
-                                            !windows[key].minimized &&
-                                            styles.activeTabOuter
+                                        !windows[key].minimized &&
+                                        styles.activeTabOuter
                                     )}
                                     onMouseDown={() => toggleMinimize(key)}
                                 >
@@ -162,8 +186,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
                                             {},
                                             styles.tabContainer,
                                             lastActive === key &&
-                                                !windows[key].minimized &&
-                                                styles.activeTabInner
+                                            !windows[key].minimized &&
+                                            styles.activeTabInner
                                         )}
                                     >
                                         <Icon
@@ -181,7 +205,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
                     </div>
                 </div>
                 <div style={styles.time}>
-                    <Icon style={styles.volumeIcon} icon="volumeOn" />
+                    {/* Обгортаємо іконку в div, щоб додати onClick */}
+                    <div
+                        style={styles.volumeIcon}
+                        onClick={toggleMute} // Додаємо обробник на div
+                    >
+                        <Icon
+                            icon={isMuted ? "volumeOff" : "volumeOn"}
+                        />
+                    </div>
                     <p style={styles.timeText}>{time}</p>
                 </div>
             </div>
@@ -201,7 +233,6 @@ const styles: StyleSheetCSS = {
         zIndex: 100000,
     },
     verticalStartContainer: {
-        // width: 30,
         height: '100%',
         background: Colors.darkGray,
     },
@@ -225,8 +256,6 @@ const styles: StyleSheetCSS = {
     startWindowContent: {
         flex: 1,
         flexDirection: 'column',
-        justifyContent: 'flex-end',
-        // alignItems: 'flex-end',
     },
     startWindow: {
         position: 'absolute',
@@ -234,7 +263,6 @@ const styles: StyleSheetCSS = {
         display: 'flex',
         flex: 1,
         width: 256,
-        // height: 400,
         left: 4,
         boxSizing: 'border-box',
         border: `1px solid ${Colors.white}`,
@@ -264,7 +292,6 @@ const styles: StyleSheetCSS = {
     },
     startMenuOption: {
         alignItems: 'center',
-        // flex: 1,
         height: 24,
         padding: 12,
     },
@@ -280,13 +307,6 @@ const styles: StyleSheetCSS = {
         border: `1px solid ${Colors.darkGray}`,
         borderBottomColor: Colors.lightGray,
         borderRightColor: Colors.lightGray,
-        backgroundImage: `linear-gradient(45deg, white 25%, transparent 25%),
-        linear-gradient(-45deg,  white 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%,  white 75%),
-        linear-gradient(-45deg, transparent 75%,  white 75%)`,
-        backgroundSize: `4px 4px`,
-        backgroundPosition: `0 0, 0 2px, 2px -2px, -2px 0px`,
-        pointerEvents: 'none',
     },
     tabContainerOuter: {
         display: 'flex',
@@ -314,7 +334,6 @@ const styles: StyleSheetCSS = {
     startContainer: {
         alignItems: 'center',
         flexShrink: 1,
-        // background: 'red',
         border: `1px solid ${Colors.lightGray}`,
         borderBottomColor: Colors.darkGray,
         borderRightColor: Colors.darkGray,
@@ -331,7 +350,6 @@ const styles: StyleSheetCSS = {
         borderRightColor: Colors.black,
     },
     toolbarTabsContainer: {
-        // background: 'blue',
         flex: 1,
         marginLeft: 4,
         marginRight: 4,
@@ -341,7 +359,6 @@ const styles: StyleSheetCSS = {
     },
     toolbarInner: {
         borderTop: `1px solid ${Colors.white}`,
-
         alignItems: 'center',
         flex: 1,
     },
@@ -359,7 +376,6 @@ const styles: StyleSheetCSS = {
         paddingRight: 4,
         border: `1px solid ${Colors.white}`,
         borderTopColor: Colors.darkGray,
-
         justifyContent: 'space-between',
         alignItems: 'center',
         borderLeftColor: Colors.darkGray,
